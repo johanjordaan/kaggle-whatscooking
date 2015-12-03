@@ -4,6 +4,7 @@ fs = require 'fs'
 training_data = require './train.json'
 
 # Sanatise the ingredient data
+#
 splitIngredients = (ingredients) ->
   retVal = []
   ingredients |> _.each (ingredient) ->
@@ -17,9 +18,8 @@ splitIngredients = (ingredients) ->
       .replace "'",''
       .replace '%',''
       .replace '.',''
-    ingredient |>_.words |> _.each (word) ->
+    ingredient |>_.words |> _.unique |> _.each (word) ->
       retVal.push word
-
 
 # Flatten the list of cuisines and ingredients
 #
@@ -36,11 +36,9 @@ data_set = training_data
       cuisine: item.cuisine
       ingredient_count: item.ingredients.length
       ingredients: splitIngredients item.ingredients
+
   |> _.group-by (item) ->
     item.cuisine
-
-console.log data_set.mexican
-
 
 type_freq = types
   |> _.count-by (item) ->
@@ -53,13 +51,25 @@ ingredient_freq = ingredients
   |> _.count-by (item) ->
     item
 
-predict = (ingredients) ->
-  splitIngredients ingredients
-  type_freq[type_freq.length-2][0]
+
+# Simply choose the most frequent type
+mostFrequent = (ingredients) ->
+  type_freq[type_freq.length-1][0]
+
+# Make a random selectionn
+randomChoice =  (ar) ->
+  ar[Math.floor Math.random! * ar.length]
+randomSelection = (ingredients) ->
+  (randomChoice type_freq)[0]
+
+#basedOnIngredientCount = (ingredients) ->
+#  splitIngredients ingredients
+
+
 
 # Write a submission
 #
-writeSubmission =  ->
+writeSubmission = (predict) ->
   test_data = require './test.json'
   stream = fs.createWriteStream 'submission.csv'
   stream.once 'open', (fd) ->
@@ -69,4 +79,4 @@ writeSubmission =  ->
         stream.write "#{item.id},#{predict(item.ingredients)}\n"
     stream.end!
 
-writeSubmission!
+writeSubmission randomSelection
