@@ -9,17 +9,20 @@ splitIngredients = (ingredients) ->
   retVal = []
   ingredients |> _.each (ingredient) ->
     ingredient = ingredient.toLowerCase!
+      .replace '-',' '
+      .replace '"',''
+      .replace "'",''
+      .replace '!',''
+      .replace '%',''
+      .replace '.',''
       .replace ' or ',''
       .replace ' and ',''
       .replace ' a ',''
       .replace ' the ',''
-      .replace '-',' '
-      .replace '"',''
-      .replace "'",''
-      .replace '%',''
-      .replace '.',''
+      .replace ' it ',''
     ingredient |>_.words |> _.unique |> _.each (word) ->
       retVal.push word
+  retVal
 
 # Flatten the list of cuisines and ingredients
 #
@@ -30,7 +33,7 @@ ingredients = []
 data_set = training_data
   |> _.map (item) ->
     types.push item.cuisine
-    ingredients.concat  splitIngredients item.ingredients
+    ingredients.push splitIngredients item.ingredients
 
     do
       cuisine: item.cuisine
@@ -40,6 +43,8 @@ data_set = training_data
   |> _.group-by (item) ->
     item.cuisine
 
+console.log splitIngredients data_set['italian'][0].ingredients
+
 type_freq = types
   |> _.count-by (item) ->
     item
@@ -48,8 +53,12 @@ type_freq = types
     count
 
 ingredient_freq = ingredients
+  |> _.flatten
   |> _.count-by (item) ->
     item
+
+console.log ingredient_freq
+
 
 
 # Simply choose the most frequent type
@@ -79,4 +88,4 @@ writeSubmission = (predict) ->
         stream.write "#{item.id},#{predict(item.ingredients)}\n"
     stream.end!
 
-writeSubmission randomSelection
+#writeSubmission randomSelection
