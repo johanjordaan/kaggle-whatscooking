@@ -60,18 +60,17 @@ matrix = data_set
    |> _.map (item) ->
       ingredients
          |> _.map (ingredient) ->
-            if ingredient in item.ingredients
-               1
-            else
-               0
+            if ingredient in item.ingredients then 1 else 0
 
-console.log matrix[0][1]
+stream = fs.createWriteStream 'training_matrix'
+stream.once 'open', (fd) ->
+   matrix
+      |> _.each (row) ->
+         row |> _.each (col) -> stream.write "#{col} "
+         stream.write "\n"
+   stream.end!
 
 
-#ingredients = ingredient_freq
-#  |> _.obj-to-pairs
-#  |> _.map ([k,v]) ->
-#    k
 
 
 
