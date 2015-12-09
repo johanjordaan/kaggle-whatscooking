@@ -6,73 +6,72 @@ training_data = require './train.json'
 # Sanatise the ingredient data
 #
 splitIngredients = (ingredients) ->
-  retVal = []
-  ingredients |> _.each (ingredient) ->
-    ingredient = ingredient.toLowerCase!
-      .replace '-',' '
-      .replace '"',''
-      .replace "'",''
-      .replace '!',''
-      .replace '%',''
-      .replace '.',''
-      .replace ' or ',''
-      .replace ' and ',''
-      .replace ' a ',''
-      .replace ' the ',''
-      .replace ' it ',''
-    ingredient |>_.words |> _.unique |> _.each (word) ->
-      retVal.push word
-  retVal
-
-# Flatten the list of cuisines and ingredients
-#
-types = []
-ingredients = []
-
+   retVal = []
+   ingredients |> _.each (ingredient) ->
+      ingredient = ingredient.toLowerCase!
+         .replace /[^\x00-\x7F]/g, ''
+         .replace /[\d]/g, ''
+         .replace /[\(\)\[\]\.\"\'\%\$]\\\/;\-,]/g,''
+      ingredient
+         |> _.words
+         |> _.unique
+         |> _.filter (word) ->
+            word.length>3
+         |> _.each (word) ->
+            retVal.push word
+   retVal
 
 data_set = training_data
   |> _.map (item) ->
-    types.push item.cuisine
-    ingredients.push splitIngredients item.ingredients
-
     do
       cuisine: item.cuisine
       ingredient_count: item.ingredients.length
       ingredients: splitIngredients item.ingredients
 
-  |> _.group-by (item) ->
-    item.cuisine
+type_freq = data_set
+   |> _.count-by (item) ->
+      item.cuisine
+   |> _.obj-to-pairs
+   |> _.sort-by ([key,count]) ->
+      count
+   |> _.pairs-to-obj
 
-console.log splitIngredients data_set['italian'][0].ingredients
+threshold = 20
+ingredient_count = data_set
+   |> _.map (item) ->
+      item.ingredients
+   |> _.flatten
+   |> _.count-by (item) ->
+      item
+   |> _.obj-to-pairs
+   |> _.filter ([ingredient,count]) ->
+      count>threshold
+   |> _.pairs-to-obj
 
-type_freq = types
-  |> _.count-by (item) ->
-    item
-  |> _.obj-to-pairs
-  |> _.sort-by ([key,count]) ->
-    count
+ingredients = ingredient_count
+   |> _.obj-to-pairs
+   |> _.map ([ingredient,count]) ->
+      ingredient
 
-ingredient_freq = ingredients
-  |> _.flatten
-  |> _.count-by (item) ->
-    item
+#console.log ingredients,ingredients.length
+console.log '-----------------------'
 
-console.log ingredient_freq
+matrix = data_set
+   |> _.map (item) ->
+      ingredients
+         |> _.map (ingredient) ->
+            if ingredient in item.ingredients
+               1
+            else
+               0
+
+console.log matrix[0][1]
 
 
-
-# Simply choose the most frequent type
-mostFrequent = (ingredients) ->
-  type_freq[type_freq.length-1][0]
-
-# Make a random selectionn
-randomChoice =  (ar) ->
-  ar[Math.floor Math.random! * ar.length]
-randomSelection = (ingredients) ->
-  (randomChoice type_freq)[0]
-
-#basedOnIngredientCount = (ingredients) ->
-#  splitIngredients ingredients
+#ingredients = ingredient_freq
+#  |> _.obj-to-pairs
+#  |> _.map ([k,v]) ->
+#    k
 
 
 
@@ -87,5 +86,3 @@ writeSubmission = (predict) ->
       |> _.each (item) ->
         stream.write "#{item.id},#{predict(item.ingredients)}\n"
     stream.end!
-
-#writeSubmission randomSelection
