@@ -4,22 +4,40 @@ fs = require 'fs'
 # Write a submission
 #
 writeSubmission = (submission) ->
-  test_data = require './test.json'
-  stream = fs.createWriteStream 'submission.csv'
+  stream = fs.createWriteStream './data/submission.csv'
   stream.once 'open', (fd) ->
     stream.write "id,cuisine\n"
-    test_data
-      |> _.each (item) ->
-        stream.write "#{item.id},#{predict(item.ingredients)}\n"
+    submission
+      |> _.each ([id,guess]) ->
+        stream.write "#{id},#{guess}\n"
     stream.end!
 
-# Read the dish_index to get the dish id's
+fs.readFile './data/test_test_index', 'utf8', (err, test_index_data) ->
+   if err? then throw err;
+   fs.readFile './data/cuisine_index', 'utf8', (err, cuisine_index_data) ->
+      if err? then throw err;
+      fs.readFile './data/submission_matrix', 'utf8', (err, submission_matrix) ->
+         if err? then throw err;
 
+         cuisine_lookup = cuisine_index_data.split "\n"
+            |> _.filter (line) ->
+               line.trim!.length > 0
+            |> _.map (line) ->
+               tokens = line.split ","
+               [tokens[0],tokens[1]]
+            |> _.pairs-to-obj
 
+         guess = submission_matrix.trim!.split(" ")
+            |> _.filter (item) ->
+               item.trim!.length > 0
+            |> _.map (item) ->
+               cuisine_lookup[item]
 
-# Read the cuisine_index to get the list of cuisines and their indexes
-#
+         test_ids = test_index_data.split "\n"
+            |> _.filter (line) ->
+               line.trim!.length > 0
+            |> _.map (line) ->
+               tokens = line.split ","
+               tokens[1]
 
-# Read the test_result_matrix this will need to be converted to dish id and
-# a matching cuisine id
-#
+         writeSubmission _.zip test_ids,guess

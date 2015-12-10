@@ -12,4 +12,8 @@ for i = [1:num_samples]
   
 endfor
 
+fid = fopen("../data/submission_matrix","w");
+fprintf(fid,"%g ",submission');
+fclose(fid);
+
 end

@@ -4,7 +4,7 @@ fs = require 'fs'
 training_input = require './data/train.json'
 test_input = require './data/test.json'
 
-THRESHOLD = 250   # Number of occurences of ingredient in recipes
+THRESHOLD = 500   # Number of occurences of ingredient in recipes
 
 # Sanitise the ingredient data
 #
