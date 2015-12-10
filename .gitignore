@@ -1,2 +1,4 @@
 node_modules
-submission.csv
+*.csv
+*_matrix
+*_index
