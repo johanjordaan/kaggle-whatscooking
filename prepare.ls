@@ -4,7 +4,7 @@ fs = require 'fs'
 training_input = require './data/train.json'
 test_input = require './data/test.json'
 
-THRESHOLD = 500   # Number of occurences of ingredient in recipes
+THRESHOLD = 250   # Number of occurences of ingredient in recipes
 
 # Sanitise the ingredient data
 #
@@ -102,6 +102,11 @@ loadTrainingData = (data) ->
       |> _.map (item) ->
          [cuisine_lookup[item.cuisine]]
 
+   console.log "# Ingredients    : [#{ingredients.length}]"
+   console.log "# Cuisines       : [#{cuisines.length}]"
+   console.log "# Features Matrix: [#{features_matrix.length} x #{features_matrix[0].length}]"
+   console.log "# Result Matrix  : [#{result_matrix.length} x #{result_matrix[0].length}]"
+
    do
       ingredients: ingredients
       ingredients_index: ingredients |> _.zip [0 to ingredients.length-1]
@@ -121,20 +126,19 @@ writeMatrix = (name, matrix) ->
    stream = fs.createWriteStream name
    current_row = 0
    write = ->
-      process.stdout.write "Writing [#{current_row}]\r"
+      process.stdout.write "Writing [#{name}] -> [#{current_row}]            \r"
       ok = true
       while ok
          if current_row >= matrix.length
             stream.end!
 
-            console.log "\nDone [#{current_row}]"
+            console.log "\nDone [#{name}] -> [#{current_row}]                  "
             return
          tmp = ""
          matrix[current_row] |> _.each (col) -> tmp += "#{col} "
          ok  = stream.write "#{tmp}\n"
-         if ok
-            current_row++
-         else
+         current_row++
+         if not ok
             stream.once 'drain', ->
                write!
    stream.once 'open', (fd) ->
