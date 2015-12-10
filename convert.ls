@@ -3,6 +3,8 @@ fs = require 'fs'
 
 training_data = require './train.json'
 
+THRESHOLD = 50
+
 # Sanatise the ingredient data
 #
 splitIngredients = (ingredients) ->
@@ -36,7 +38,6 @@ type_freq = data_set
       count
    |> _.pairs-to-obj
 
-threshold = 20
 ingredient_count = data_set
    |> _.map (item) ->
       item.ingredients
@@ -45,7 +46,7 @@ ingredient_count = data_set
       item
    |> _.obj-to-pairs
    |> _.filter ([ingredient,count]) ->
-      count>threshold
+      count > THRESHOLD
    |> _.pairs-to-obj
 
 ingredients = ingredient_count
@@ -62,17 +63,34 @@ matrix = data_set
          |> _.map (ingredient) ->
             if ingredient in item.ingredients then 1 else 0
 
-stream = fs.createWriteStream 'training_matrix'
-stream.once 'open', (fd) ->
-   matrix
-      |> _.each (row) ->
-         row |> _.each (col) -> stream.write "#{col} "
-         stream.write "\n"
-   stream.end!
+
+writeMatrix = (matrix) ->
+   stream = fs.createWriteStream 'training_matrix'
+   current_row = 0
+   write = ->
+      process.stdout.write "Writing [#{current_row}]\r"
+      ok = true
+      while ok
+         if current_row >= matrix.length
+            stream.end!
+
+            console.log "\nDone [#{current_row}]"
+            return
+         tmp = ""
+         matrix[current_row] |> _.each (col) -> tmp += "#{col} "
+         ok  = stream.write "#{tmp}\n"
+         if ok
+            current_row++
+         else
+            stream.once 'drain', ->
+               write!
 
 
 
+   stream.once 'open', (fd) ->
+      write!
 
+writeMatrix matrix
 
 # Write a submission
 #
