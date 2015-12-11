@@ -2,3 +2,4 @@ node_modules
 *.csv
 *_matrix
 *_index
+octave-workspace
