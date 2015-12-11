@@ -4,7 +4,9 @@ fs = require 'fs'
 training_input = require './data/train.json'
 test_input = require './data/test.json'
 
-THRESHOLD = 500   # Number of occurences of ingredient in recipes
+UPPER_THRESHOLD = 5000
+LOWER_THRESHOLD = 100
+
 
 # Sanitise the ingredient data
 #
@@ -79,7 +81,7 @@ loadTrainingData = (data) ->
          item
       |> _.obj-to-pairs
       |> _.filter ([ingredient,count]) ->
-         count > THRESHOLD
+         count > LOWER_THRESHOLD and count < UPPER_THRESHOLD
       |> _.pairs-to-obj
 
    ingredients = ingredient_count
@@ -93,7 +95,7 @@ loadTrainingData = (data) ->
             |> _.map (ingredient) ->
                if ingredient in item.ingredients then 1 else 0
 
-   cuisine_index = cuisines |> _.zip [0 to cuisines.length-1]
+   cuisine_index = cuisines |> _.zip [1 to cuisines.length]
    cuisine_lookup = cuisine_index
       |> _.map ([index, name]) ->
          [name, index]
