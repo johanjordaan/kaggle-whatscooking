@@ -4,6 +4,7 @@
   "description": "All-vs-One logist regression solution to the whatcooking kaggle challenge",
   "main": "index.js",
   "dependencies": {
+    "jaro-winkler": "^0.2.6",
     "prelude-ls": "^1.1.2"
   },
   "devDependencies": {},
