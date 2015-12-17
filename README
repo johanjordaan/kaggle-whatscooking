@@ -1,1 +1,12 @@
 Playing on kaggle : https://www.kaggle.com/c/whats-cooking
+
+The model for predicting is a one-vs-all logistic regression.
+
+I achieved a 83% success of the training data and a 73% success on the test data.
+
+The main area of improvement would probably be on how the 'features' (ingredients)
+are and parsed. Some form of clustering on the ingredients would have been useful.
+
+I only started this challenge very late so I did not have a lot of time to
+work on this before the challenge finished.
+ 

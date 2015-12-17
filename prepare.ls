@@ -4,8 +4,8 @@ fs = require 'fs'
 training_input = require './data/train.json'
 test_input = require './data/test.json'
 
-UPPER_THRESHOLD = 5000
-LOWER_THRESHOLD = 100
+UPPER_THRESHOLD = 10000
+LOWER_THRESHOLD = 10
 
 
 # Sanitise the ingredient data
@@ -121,7 +121,7 @@ writeIndex = (name, index) ->
    stream.once 'open', (fd) ->
       index
          |> _.each (item) ->
-             stream.write "#{item[0]},#{item[1]}\n"
+               stream.write "#{item[0]},#{item[1]}\n"
       stream.end!
 
 writeMatrix = (name, matrix) ->
@@ -145,7 +145,6 @@ writeMatrix = (name, matrix) ->
                write!
    stream.once 'open', (fd) ->
       write!
-
 
 training = loadTrainingData training_input
 writeIndex 'data/ingredients_index', training.ingredients_index
